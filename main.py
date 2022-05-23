@@ -5,9 +5,10 @@ import matplotlib.pyplot as plt
 
 class Bspline:
     def __init__(self):
+        # example 0 degree in cal_pos is 2
         self.control_points = np.array([
             [0.0, 0.0, 0.0],
-            [2.0, 3.0, -6.0],
+            [2.0, 3.0, 6.0],
             [-4.0, 5.0, -7.0],
             [3.0, 8.0, 12.0],
             [10.0, 6.0, 1.0],
@@ -17,6 +18,34 @@ class Bspline:
             [4.0, 9.0, 13.0],
             [11.0, 7.0, 2.0],
         ])
+
+        # # example 1 degree in cal_pos is 2
+        # self.control_points = np.array([
+        #     [0.0, 0.0, 0.0],
+        #     [1.0, 0.0, 0.0],
+        #     [2.0, 0.0, 0.0],
+        #     [2.0, 0.5, 0.0],
+        #     [3.0, 1.0, 0.0],
+        #     [4.0, 1.0, 0.0],
+        #     [5.0, 1.2, 0.0],
+        #     [6.0, 1.5, 0.0],
+        #     [10.0, 3.0, 0.0],
+        #     [11.0, 4.0, 0.0],
+        #     [12.0, 11.0, 0.0],
+        #     [11.0, 4.0, 0.0],
+        #     [10.0, 3.0, 0.0],
+        #     [6.0, 1.5, 0.0],
+        #     [5.0, 1.2, 0.0],
+        #     [4.0, 1.0, 0.0],
+        #     [3.0, 1.0, 0.0],
+        #     [2.0, 0.5, 0.0],
+        #     [2.0, 0.0, 0.0],
+        #     [1.0, 0.0, 0.0],
+        #     [0.0, 0.0, 0.0],
+        # ])
+
+        # example 2
+        # the control points same as example 1 and the degree selected for cal_pos is 3 instead of 2
 
         self.degree = 3
         self.n = self.control_points.shape[0] - 1
@@ -66,7 +95,7 @@ class Bspline:
     def cal_pos(self, t):
         # needed to be implemented
         # let degree be 2
-        degree = 2
+        degree = 3
         result = np.zeros_like(self.control_points[0])
         for i in range(self.n + 1 - degree):
             result += self.control_points[i] * self.basis_func(i, degree, t)
@@ -90,12 +119,13 @@ class Bspline:
                 ax.scatter(self.control_points[i][0], self.control_points[i][1], self.control_points[i][2])
 
             for pt in np.linspace(0, 1, 100):
-                ax.scatter(self.cal_pos(pt)[0], self.cal_pos(pt)[1], self.cal_pos(pt)[2], color='red')
+                ax.scatter(self.cal_pos(pt)[0], self.cal_pos(pt)[1], self.cal_pos(pt)[2], color='red', s=10)
 
             ax.set_xlabel('X Label')
             ax.set_ylabel('Y Label')
             ax.set_zlabel('Z Label')
         # ax.scatter(xs, ys, zs, marker=m)
+        plt.savefig("example2.png")
         plt.show()
 
 
