@@ -6,22 +6,32 @@ import matplotlib.pyplot as plt
 class Bspline:
     def __init__(self):
         self.control_points = np.array([
-            [0, 0, 0],
-            [2, 3, -6],
-            [-4, 5, -7],
-            [3, 8, 12],
-            [10, 6, 1],
+            [0.0, 0.0, 0.0],
+            [2.0, 3.0, -6.0],
+            [-4.0, 5.0, -7.0],
+            [3.0, 8.0, 12.0],
+            [10.0, 6.0, 1.0],
+            [1.0, 1.0, 1.0],
+            [3.0, 4.0, -5.0],
+            [-3.0, 6.0, -6.0],
+            [4.0, 9.0, 13.0],
+            [11.0, 7.0, 2.0],
         ])
 
         self.degree = 3
-        self.control_points_num = self.control_points.shape[0]
-        self.elem_num = self.degree + self.control_points_num + 1
+        self.n = self.control_points.shape[0] - 1
+        self.elem_num = self.degree + self.n + 1
+        self.internal_nodes = self.n - self.degree + 1
+        # the num of edge nodes = self.degree
 
         if self.elem_num == 1:
             self.knot_vector = np.array([0, 1])
         else:
-            self.knot_vector = np.arange(0, 1, 1 / (self.elem_num - 1))
-            self.knot_vector = np.append(self.knot_vector, 1)
+            self.knot_vector = np.zeros((self.degree,))
+            temp = np.arange(0, 1, 1 / (self.internal_nodes + 1))
+            temp = temp[1:]
+            self.knot_vector = np.append(self.knot_vector, temp)
+            self.knot_vector = np.append(self.knot_vector, np.ones((self.degree,)))
 
     def print(self):
         print(self.control_points)
@@ -29,7 +39,7 @@ class Bspline:
         print(self.knot_vector)
         print(self.control_points.shape)
 
-    def basis_func(self, partition_idx=0, degree=0, x=0):
+    def basis_func(self, partition_idx=0, degree=0, x=0.0):
         # degree should always between 0 and self.degree, inclusive
         # partition_idx should always between 0 and self.elem_num - 2, inclusive
         # base case:
@@ -42,12 +52,25 @@ class Bspline:
                 return 1
             return 0
         # else recursion relation:
-        return (x - xi) / (xipp - xi) * self.basis_func(partition_idx, degree - 1, x) + \
-               (xipp1 - x) / (xip1 - xip1) * self.basis_func(partition_idx + 1, degree - 1, x)
+        # just do it to avoid error (denominator be zero)
+        if xipp - xi == 0:
+            term1 = 0
+        else:
+            term1 = (x - xi) / (xipp - xi) * self.basis_func(partition_idx, degree - 1, x)
+        if xipp1 - xip1 == 0:
+            term2 = 0
+        else:
+            term2 = (xipp1 - x) / (xipp1 - xip1) * self.basis_func(partition_idx + 1, degree - 1, x)
+        return term1 + term2
 
-    def cal_pos(self):
+    def cal_pos(self, t):
         # needed to be implemented
-        pass
+        # let degree be 2
+        degree = 2
+        result = np.zeros_like(self.control_points[0])
+        for i in range(self.n + 1 - degree):
+            result += self.control_points[i] * self.basis_func(i, degree, t)
+        return result
 
     def plot_curve(self):
         fig = plt.figure()
@@ -55,12 +78,20 @@ class Bspline:
             ax = fig.add_subplot()
             for i in range(self.control_points.shape[0]):
                 ax.scatter(self.control_points[i][0], self.control_points[i][1])
-                ax.set_xlabel('X Label')
-                ax.set_ylabel('Y Label')
+
+            for pt in np.linspace(0, 1, 100):
+                ax.scatter(self.cal_pos(pt)[0], self.cal_pos(pt)[1], color='red')
+
+            ax.set_xlabel('X Label')
+            ax.set_ylabel('Y Label')
         elif self.control_points.shape[1] == 3:
             ax = fig.add_subplot(projection='3d')
             for i in range(self.control_points.shape[0]):
                 ax.scatter(self.control_points[i][0], self.control_points[i][1], self.control_points[i][2])
+
+            for pt in np.linspace(0, 1, 100):
+                ax.scatter(self.cal_pos(pt)[0], self.cal_pos(pt)[1], self.cal_pos(pt)[2], color='red')
+
             ax.set_xlabel('X Label')
             ax.set_ylabel('Y Label')
             ax.set_zlabel('Z Label')
@@ -72,3 +103,6 @@ if __name__ == '__main__':
     a = Bspline()
     a.print()
     a.plot_curve()
+
+
+
